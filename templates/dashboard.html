@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Рабочая панель | CRM</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
+    <div class="container">
+        <a class="navbar-brand" href="#">CRM Контакты <span id="userRoleBadge" class="badge bg-secondary ms-2"></span></a>
+        <div class="d-flex">
+            <button class="btn btn-outline-light" onclick="logout()">Выйти</button>
+        </div>
+    </div>
+</nav>
+
+<div id="alertContainer" class="container" style="position: fixed; top: 20px; right: 20px; z-index: 1050; width: auto;"></div>
+
+<div class="container">
+    <div id="adminPanel" class="row mb-4" style="display: none;">
+        <div class="col-12 mb-3">
+            <h3 class="text-danger">Панель руководителя</h3>
+        </div>
+        
+        <div class="col-md-8">
+            <div class="card shadow-sm border-danger">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="mb-0">Анализ активности</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-sm table-hover">
+                        <thead>
+                            <tr>
+                                <th>Контрагент</th>
+                                <th>Задача</th>
+                                <th>Срок</th>
+                                <th>Приоритет</th>
+                                <th>Всего звонков</th>
+                            </tr>
+                        </thead>
+                        <tbody id="analyticsTable">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card shadow-sm border-danger">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="mb-0">Менеджеры</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-group" id="usersList">
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">База Контактов</h5>
+                    <button class="btn btn-sm btn-light" data-bs-toggle="modal" data-bs-target="#addContactModal">Добавить контакт</button>
+                </div>
+                <div class="card-body">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                            <th>Имя</th>
+                            <th>Фамилия</th>
+                            <th>Тип</th> <th>Компания</th>
+                            <th>Телефон</th>
+                            <th>Действия</th>
+                        </tr>
+                        </thead>
+                        <tbody id="contactsTable">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card shadow-sm">
+                <div class="card-header bg-warning text-dark d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Задачи в работе</h5>
+                    <button class="btn btn-sm btn-dark" data-bs-toggle="modal" data-bs-target="#addTaskModal">Добавить задачу</button>
+                </div>
+                <div class="card-body">
+                    <ul class="list-group" id="tasksList">
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="addContactModal" tabindex="-1" aria-labelledby="addContactModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="addContactModalLabel">Новый контакт</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+      </div>
+      <div class="modal-body">
+        <form id="contactForm">
+          <div class="mb-3">
+            <label class="form-label">Имя *</label>
+            <input type="text" class="form-control" id="contactFirstName" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Фамилия *</label>
+            <input type="text" class="form-control" id="contactLastName" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Компания</label>
+            <input type="text" class="form-control" id="contactCompany">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Телефон</label>
+            <input type="text" class="form-control" id="contactPhone">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Тип контакта *</label>
+            <select class="form-select" id="contactType" required>
+            </select>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+        <button type="button" class="btn btn-primary" onclick="createContact()">Сохранить</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="addTaskModal" tabindex="-1" aria-labelledby="addTaskModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="addTaskModalLabel">Новая задача</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+      </div>
+      <div class="modal-body">
+        <form id="taskForm">
+          <div class="mb-3">
+            <label class="form-label">Описание задачи *</label>
+            <input type="text" class="form-control" id="taskTitle" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">К какому контакту относится? *</label>
+            <select class="form-select" id="taskContactId" required>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Срок (Дедлайн) *</label>
+            <input type="datetime-local" class="form-control" id="taskDueDate" required>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+        <button type="button" class="btn btn-warning" onclick="createTask()">Добавить</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    const token = localStorage.getItem('token');
+    if (!token) {
+        window.location.href = '/'; 
+    }
+
+    const headers = { 
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+    };
+
+    let currentUser = null;
+
+    function showAlert(message, type='danger') {
+        const container = document.getElementById('alertContainer');
+        const alertHtml = `
+            <div class="alert alert-${type} alert-dismissible fade show shadow" role="alert">
+                <strong>Внимание!</strong> ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        `;
+        container.innerHTML = alertHtml;
+        setTimeout(() => { container.innerHTML = ''; }, 5000);
+    }
+
+    async function loadData() {
+        try {
+            const resMe = await fetch('/api/me', { headers });
+            if (resMe.status === 401) { logout(); return; }
+            currentUser = await resMe.json();
+            
+            document.getElementById('userRoleBadge').innerText = currentUser.is_admin ? "Администратор" : "Менеджер";
+            
+            if (currentUser.is_admin) {
+                document.getElementById('adminPanel').style.display = 'flex';
+                loadAdminData();
+            }
+
+            let contactTypesList = [];
+            const resTypes = await fetch('/api/contact-types', { headers });
+            if (resTypes.ok) {
+                contactTypesList = await resTypes.json();
+                const typeSelect = document.getElementById('contactType');
+                typeSelect.innerHTML = '<option value="" disabled selected>Выберите тип...</option>';
+                contactTypesList.forEach(t => {
+                    typeSelect.innerHTML += `<option value="${t.id}">${t.type_name}</option>`;
+                });
+            }
+
+            const resContacts = await fetch('/api/contacts', { headers });
+            const contacts = await resContacts.json();
+            
+            const tbody = document.getElementById('contactsTable');
+            const taskContactSelect = document.getElementById('taskContactId');
+            
+            tbody.innerHTML = '';
+            taskContactSelect.innerHTML = '<option value="" disabled selected>Выберите контакт...</option>';
+
+            contacts.forEach(c => {
+                const typeObj = contactTypesList.find(t => t.id === c.type_id);
+                const typeName = typeObj ? typeObj.type_name : '—';
+                
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${c.first_name}</td>
+                        <td>${c.last_name}</td>
+                        <td><span class="badge bg-info text-dark">${typeName}</span></td>
+                        <td>${c.company_name || '—'}</td>
+                        <td>${c.phone || '—'}</td>
+                        <td>
+                            <button class="btn btn-sm btn-success me-1" onclick="addCall(${c.id})">Звонок</button>
+                            <button class="btn btn-sm btn-danger" onclick="deleteContact(${c.id})">Удалить</button>
+                        </td>
+                    </tr>`;
+                taskContactSelect.innerHTML += `<option value="${c.id}">${c.first_name} ${c.last_name}</option>`;
+            });
+
+            const resTasks = await fetch('/api/tasks', { headers });
+            const tasks = await resTasks.json();
+            const tList = document.getElementById('tasksList');
+            tList.innerHTML = '';
+            tasks.forEach(t => {
+                const contact = contacts.find(c => c.id === t.contact_id);
+                const contactName = contact ? `${contact.first_name}` : 'Неизвестный контакт';
+                const fDate = new Date(t.due_date).toLocaleDateString();
+                
+                tList.innerHTML += `
+                    <li class="list-group-item">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <strong>${t.title}</strong>
+                            <span class="badge bg-secondary rounded-pill">${t.status}</span>
+                        </div>
+                        <small class="text-muted">Контакт: ${contactName} | Срок: ${fDate}</small>
+                    </li>`;
+            });
+        } catch (e) {
+            console.error("Ошибка при загрузке данных:", e);
+        }
+    }
+
+    async function loadAdminData() {
+        const resAnalyt = await fetch('/api/analytics', { headers });
+        if (resAnalyt.ok) {
+            const data = await resAnalyt.json();
+            const tbody = document.getElementById('analyticsTable');
+            tbody.innerHTML = '';
+            data.forEach(row => {
+                const fDate = new Date(row.due_date).toLocaleDateString();
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${row.first_name} ${row.last_name}</td>
+                        <td>${row.task_title}</td>
+                        <td>${fDate}</td>
+                        <td><span class="badge bg-danger">${row.task_priority}</span></td>
+                        <td>${row.total_calls}</td>
+                    </tr>
+                `;
+            });
+        }
+
+        const resUsers = await fetch('/api/users', { headers });
+        if (resUsers.ok) {
+            const users = await resUsers.json();
+            const list = document.getElementById('usersList');
+            list.innerHTML = '';
+            users.forEach(u => {
+                const badge = u.is_admin ? '<span class="badge bg-warning text-dark">Admin</span>' : '';
+                const delBtn = u.id !== currentUser.id ? `<button class="btn btn-sm btn-outline-danger" onclick="deleteUser(${u.id})">Удалить</button>` : '';
+                list.innerHTML += `
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <strong>${u.username}</strong> ${badge}
+                            <br><small class="text-muted">${u.email}</small>
+                        </div>
+                        ${delBtn}
+                    </li>
+                `;
+            });
+        }
+    }
+
+    window.onload = loadData;
+
+    async function createContact() {
+        const data = {
+            first_name: document.getElementById('contactFirstName').value,
+            last_name: document.getElementById('contactLastName').value,
+            company_name: document.getElementById('contactCompany').value,
+            phone: document.getElementById('contactPhone').value,
+            type_id: parseInt(document.getElementById('contactType').value)
+        };
+
+        if (!data.first_name || !data.last_name || isNaN(data.type_id)) {
+            showAlert("Пожалуйста, заполните обязательные поля (Имя, Фамилия, Тип)!", "warning");
+            return;
+        }
+
+        const res = await fetch('/api/contacts', {
+            method: 'POST',
+            headers: headers,
+            body: JSON.stringify(data)
+        });
+
+        if (res.ok) {
+            const modal = bootstrap.Modal.getInstance(document.getElementById('addContactModal'));
+            modal.hide();
+            document.getElementById('contactForm').reset();
+            loadData();
+            showAlert("Контакт успешно добавлен!", "success");
+        } else {
+            const err = await res.json();
+            showAlert(err.detail || "Ошибка при создании контакта");
+        }
+    }
+
+    async function deleteContact(id) {
+        if (!confirm("Уверены, что хотите удалить этот контакт?")) return;
+        const res = await fetch(`/api/contacts/${id}`, { method: 'DELETE', headers: headers });
+        if (res.ok) {
+            loadData();
+            showAlert("Контакт успешно удален", "success");
+        } else {
+            const err = await res.json();
+            showAlert(err.detail || "Произошла ошибка при удалении");
+        }
+    }
+
+    async function deleteUser(id) {
+        if (!confirm("ВНИМАНИЕ! Удалить пользователя из системы навсегда?")) return;
+        const res = await fetch(`/api/users/${id}`, { method: 'DELETE', headers: headers });
+        if (res.ok) {
+            loadAdminData();
+            showAlert("Менеджер удален", "success");
+        } else {
+            const err = await res.json();
+            showAlert(err.detail || "Ошибка удаления");
+        }
+    }
+
+    async function createTask() {
+        const rawDate = document.getElementById('taskDueDate').value;
+        const data = {
+            title: document.getElementById('taskTitle').value,
+            contact_id: parseInt(document.getElementById('taskContactId').value),
+            due_date: rawDate ? new Date(rawDate).toISOString() : null
+        };
+
+        if (!data.title || isNaN(data.contact_id) || !data.due_date) {
+            showAlert("Заполните описание, выберите контакт и срок!", "warning");
+            return;
+        }
+
+        const res = await fetch('/api/tasks', {
+            method: 'POST',
+            headers: headers,
+            body: JSON.stringify(data)
+        });
+
+        if (res.ok) {
+            const modal = bootstrap.Modal.getInstance(document.getElementById('addTaskModal'));
+            modal.hide();
+            document.getElementById('taskForm').reset();
+            loadData();
+            if(currentUser.is_admin) loadAdminData();
+            showAlert("Задача успешно добавлена!", "success");
+        } else {
+            const err = await res.json();
+            showAlert(err.detail || "Ошибка при добавлении задачи");
+        }
+    }
+    
+    async function addCall(contactId) {
+        const res = await fetch(`/api/interactions?contact_id=${contactId}`, { 
+            method: 'POST', 
+            headers: headers 
+        });
+        
+        if (res.ok) {
+            if (currentUser.is_admin) loadAdminData(); 
+            showAlert("Звонок зафиксирован!", "success");
+        } else {
+            showAlert("Ошибка при добавлении звонка");
+        }
+    }
+
+    function logout() {
+        localStorage.removeItem('token');
+        window.location.href = '/';
+    }
+</script>
+</body>
+</html>

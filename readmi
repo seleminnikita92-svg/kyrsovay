@@ -1,0 +1,15 @@
+#бд
+# Databases -> Create -> Database
+# contact_management_db
+#сохрани
+#Query Tool
+#скопировать текст с флешки
+#готово
+
+# python -m venv venv
+# venv\Scripts\activate
+# pip install -r requirements.txt
+
+# database.py какой пароль
+
+# uvicorn main:app --reload
